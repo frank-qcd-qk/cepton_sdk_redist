@@ -23,7 +23,7 @@ set(OS_NAME "linux-${MACHINE_ARCH}")
 # ------------------------------------------------------------------------------
 # Compiler Flags
 # ------------------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 # ------------------------------------------------------------------------------
 # External libraries
@@ -41,7 +41,12 @@ set(CEPTON_ROS_CATKIN_DEPENDS
     tf2_ros)
 find_package(catkin REQUIRED COMPONENTS ${CEPTON_ROS_CATKIN_DEPENDS}
                                         message_generation)
-include_directories(SYSTEM ${catkin_INCLUDE_DIRS})
+find_package(PkgConfig REQUIRED)
+find_package(jsoncpp REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
+link_libraries(${JSONCPP_LIBRARIES})
+
+include_directories(SYSTEM ${catkin_INCLUDE_DIRS} ${jsoncpp_INCLUDE_DIRS})
 
 set(CEPTON_ROS_THIRD_PARTY_LIBRARIES "")
 
@@ -75,7 +80,7 @@ foreach(name IN LISTS CEPTON_ROS_LIBRARIES)
     ${name} PUBLIC $<BUILD_INTERFACE:${CEPTON_ROS_SOURCE_DIR}/include>
                    $<INSTALL_INTERFACE:include>)
   target_link_libraries(${name} ${catkin_LIBRARIES}
-                        ${CEPTON_ROS_THIRD_PARTY_LIBRARIES})
+                        ${CEPTON_ROS_THIRD_PARTY_LIBRARIES} ${jsoncpp_LIBRARIES})
   add_dependencies(${name} ${catkin_EXPORTED_TARGETS}
                    ${cepton_ros_EXPORTED_TARGETS})
 endforeach()
@@ -87,7 +92,7 @@ catkin_package(
   CATKIN_DEPENDS
   ${CEPTON_ROS_CATKIN_DEPENDS}
   message_runtime
-  DEPENDS
+  DEPENDS JSONCPP
   INCLUDE_DIRS
   "include"
   LIBRARIES
